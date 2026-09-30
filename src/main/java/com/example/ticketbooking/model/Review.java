@@ -1,9 +1,7 @@
-package com.example.ticketbooking.entity;
+package com.example.ticketbooking.model;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

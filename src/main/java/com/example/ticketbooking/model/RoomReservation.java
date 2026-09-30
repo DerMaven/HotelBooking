@@ -1,10 +1,6 @@
-package com.example.ticketbooking.entity;
+package com.example.ticketbooking.model;
 
-import com.example.ticketbooking.entity.Hotel;
-import com.example.ticketbooking.entity.enums.RoomStatus;
-import com.example.ticketbooking.entity.enums.RoomType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,7 @@
-package com.example.ticketbooking.entity;
+package com.example.ticketbooking.model;
 
-import com.example.ticketbooking.entity.enums.Currency;
+import com.example.ticketbooking.model.enums.Currency;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

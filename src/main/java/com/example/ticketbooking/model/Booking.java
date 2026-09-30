@@ -1,14 +1,10 @@
-package com.example.ticketbooking.entity;
+package com.example.ticketbooking.model;
 
-import com.example.ticketbooking.entity.enums.BookingStatus;
-import com.example.ticketbooking.entity.enums.Currency;
+import com.example.ticketbooking.model.enums.BookingStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;

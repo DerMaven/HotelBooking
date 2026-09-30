@@ -1,7 +1,7 @@
-package com.example.ticketbooking.entity;
+package com.example.ticketbooking.model;
 
-import com.example.ticketbooking.entity.enums.MealMenuPlan;
-import com.example.ticketbooking.entity.enums.RoomType;
+import com.example.ticketbooking.model.enums.MealMenuPlan;
+import com.example.ticketbooking.model.enums.RoomType;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
