@@ -1,4 +1,9 @@
-FROM ubuntu:latest
-LABEL authors="mironnaidanov"
+from eclipse-temurin:21-jdk-alpine AS build
+workdir /app
+copy . .
+run ./mvnw clean package -DskipTests
 
-ENTRYPOINT ["top", "-b"]
+from eclipse-temurin:21-jre-alpine
+workdir /app
+copy --from=build /app/target/*.jar app.jar
+entrypoint ["java", "-jar", "app.jar"]

@@ -3,6 +3,7 @@ package com.example.ticketbooking.model;
 import com.example.ticketbooking.model.enums.MealMenuPlan;
 import com.example.ticketbooking.model.enums.RoomType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
@@ -24,8 +25,10 @@ public class RatePlan {
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime date;
 
+    @PositiveOrZero
     private Byte minNightsStay;
 
+    @PositiveOrZero
     private Byte maxNightsStay;
 
     private Boolean isActive;

@@ -18,18 +18,18 @@ public class Guest {
     @Id
     private Long id;
 
-    @NotBlank(message = "Вы обязаны ввести имя")
+    @NotBlank(message = "You must enter first name")
     private String firstName;
 
-    @NotBlank(message = "Вы обязаны ввести фамилию")
+    @NotBlank(message = "You must enter last name")
     private String lastName;
 
     @NotBlank
-    @Email(message = "Вы обязаны ввести верный email")
+    @Email(message = "You must enter a proper email")
     private String email;
 
     private String passportNumber;
 
-    @NotBlank(message = "Номер телефона должен быть введен")
+    @NotBlank(message = "Phone number has to be entered")
     private String phoneNumber;
 }

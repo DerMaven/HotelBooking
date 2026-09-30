@@ -18,7 +18,7 @@ public class Room {
     @Id
     private Long id;
 
-    @NotBlank(message = "Вы обязаны ввести номер комнаты")
+    @NotBlank(message = "You must enter room's number")
     private String roomNumber;
 
     private Long floor;

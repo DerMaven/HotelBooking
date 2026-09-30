@@ -16,10 +16,10 @@ public class RoomReservation {
     @Id
     private Long id;
 
-    @PositiveOrZero(message = "Значение не может быть ниже нуля")
+    @PositiveOrZero(message = "Value can't be negative.")
     private Long childrenAmount;
 
-    @PositiveOrZero(message = "Значение не может быть ниже нуля")
+    @PositiveOrZero(message = "Value can't be negative.")
     private Long adultAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -2,6 +2,7 @@ package com.example.ticketbooking.model;
 
 import com.example.ticketbooking.model.enums.BookingStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,9 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
+
+    @NotBlank(message = "Field can't be empty")
+    private String bookingReference;
 
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime checkIn;

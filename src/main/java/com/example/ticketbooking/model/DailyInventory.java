@@ -17,10 +17,10 @@ public class DailyInventory {
     @Id
     private Long id;
 
-    @PositiveOrZero(message = "Значение не может быть отрицательным")
+    @PositiveOrZero(message = "Value can't be negative.")
     private Long roomsAmount;
 
-    @PositiveOrZero(message = "Значение не может быть отрицательным")
+    @PositiveOrZero(message = "Value can't be negative.")
     private Long availableRooms;
 
     @OneToOne(mappedBy = "daily_inventory", cascade = CascadeType.ALL)

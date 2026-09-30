@@ -17,19 +17,19 @@ public class Hotel {
     @Id
     private Long id;
 
-    @NotBlank(message = "Вы обязаны название отеля")
+    @NotBlank(message = "You must enter hotel's name")
     private String name;
 
-    @NotBlank(message = "Вы обязаны описание отеля")
+    @NotBlank(message = "You must enter hotel's description")
     private String description;
 
-    @NotBlank(message = "Вы обязаны описание отеля")
+    @NotBlank(message = "You must enter hotel's country")
     private String country;
 
-    @NotBlank(message = "Вы обязаны описание отеля")
+    @NotBlank(message = "You must enter hotel's city")
     private String city;
 
-    @NotBlank(message = "Вы обязаны описание отеля")
+    @NotBlank(message = "You must enter hotel's address")
     private String address;
 
     @Enumerated(EnumType.STRING)
