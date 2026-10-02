@@ -23,7 +23,7 @@ public class DailyInventory {
     @PositiveOrZero(message = "Value can't be negative.")
     private Long availableRooms;
 
-    @OneToOne(mappedBy = "daily_inventory", cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "hotel_id")
     private Hotel hotel;
 }
