@@ -5,6 +5,9 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "daily_inventories")
@@ -22,6 +25,9 @@ public class DailyInventory {
 
     @PositiveOrZero(message = "Value can't be negative.")
     private Long availableRooms;
+
+    @DateTimeFormat
+    private LocalDateTime inventoryDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "hotel_id")

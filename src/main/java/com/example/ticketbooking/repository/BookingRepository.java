@@ -1,6 +1,7 @@
 package com.example.ticketbooking.repository;
 
 import com.example.ticketbooking.model.Booking;
+import com.example.ticketbooking.model.Guest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,4 +16,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select b from Booking b join b.guest g where b.checkIn = :checkIn and g.firstName = :firstName and g.lastName = :lastName order by :checkIn desc")
     Optional<Booking> findByCheckInDateAndFullName(LocalDateTime checkIn, String firstName, String lastName);
+
 }

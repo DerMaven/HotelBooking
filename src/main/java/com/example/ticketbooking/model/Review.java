@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reviews")
@@ -19,6 +22,9 @@ public class Review {
     private String title;
 
     private String description;
+
+    @DateTimeFormat
+    private LocalDateTime createdAt;
 
     private Byte stars;
 
