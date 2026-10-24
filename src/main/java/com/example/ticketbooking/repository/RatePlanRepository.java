@@ -10,4 +10,7 @@ public interface RatePlanRepository extends JpaRepository<RatePlan, Long> {
 
     @Query("select rp from RatePlan rp join Hotel h on rp.hotel.id = h.id where h.name = :hotelName")
     List<RatePlan> findByHotelName(String hotelName);
+
+    @Query("select rp from RatePlan rp join Hotel h on rp.hotel.id = h.id where h.id = :hotelId")
+    List<RatePlan> findByHotelID(Long hotelId);
 }

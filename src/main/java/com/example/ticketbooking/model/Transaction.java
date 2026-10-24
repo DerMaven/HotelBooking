@@ -36,7 +36,7 @@ public class Transaction {
     private PaymentStatus status;
 
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private LocalDateTime processedAt;
+    private LocalDateTime processedAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")

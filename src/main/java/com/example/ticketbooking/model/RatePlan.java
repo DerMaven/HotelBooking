@@ -1,29 +1,27 @@
 package com.example.ticketbooking.model;
 
 import com.example.ticketbooking.model.enums.MealMenuPlan;
-import com.example.ticketbooking.model.enums.RoomType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "rate_plans")
 public class RatePlan {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
     private MealMenuPlan menuPlan;
 
-    @Enumerated(EnumType.STRING)
-    private RoomType roomType;
+    @PositiveOrZero
+    private BigDecimal price;
 
-    @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private LocalDateTime date;
+    @NotBlank
+    private String currency;
 
     @PositiveOrZero
     private Byte minNightsStay;
@@ -37,8 +35,7 @@ public class RatePlan {
     @JoinColumn(name = "hotel_id")
     private Hotel hotel;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
+    @JoinColumn(name = "rate_plan_id")
+    private RatePlan ratePlan;
 }
