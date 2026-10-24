@@ -34,8 +34,4 @@ public class RatePlan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
     private Hotel hotel;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rate_plan_id")
-    private RatePlan ratePlan;
 }
