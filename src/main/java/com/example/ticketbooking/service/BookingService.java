@@ -24,6 +24,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingService {
     private final BookingRepository bookingRepository;
+    private final RoomService roomService;
+    private final TransactionService transactionService;
+    private final InventoryService inventoryService;
+
+
 
     public List<Booking> getByFullName(String firstName, String lastName) {
         return bookingRepository.findByFullName(firstName, lastName);
