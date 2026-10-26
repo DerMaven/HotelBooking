@@ -11,7 +11,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "daily_inventories")
+@Table(name = "daily_inventories", indexes = {
+        @Index(name = "idx_daily_inventories_total_stock", columnList = "total_stock"),
+        @Index(name = "idx_daily_inventories_booking_stock", columnList = "booking_stock")
+})
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -21,12 +24,15 @@ public class DailyInventory {
     @Id
     private Long id;
 
+    @Column(name = "inventory_date")
     @DateTimeFormat
     private LocalDate inventoryDate;
 
+    @Column(name = "total_stock")
     @PositiveOrZero
     private Long totalStock;
 
+    @Column(name = "booking_stock")
     @PositiveOrZero
     private Long bookingStock;
 
@@ -37,8 +43,7 @@ public class DailyInventory {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "rooms",
-            joinColumns = { @JoinColumn(name = "room_id") },
-            inverseJoinColumns = { @JoinColumn(name = "") }
+            joinColumns = { @JoinColumn(name = "room_id") }
     )
     private List<Room> rooms;
 }

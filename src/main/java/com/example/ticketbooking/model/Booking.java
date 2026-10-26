@@ -11,27 +11,37 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "bookings", indexes = {
+        @Index(name = "idx_bookings_check_in", columnList = "check_in"),
+        @Index(name = "idx_bookings_check_out", columnList = "check_out"),
+        @Index(name = "idx_bookings_status", columnList = "status")
+})
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class Booking {
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
+    @Column(name = "booking_reference")
     @NotBlank(message = "Field can't be empty")
     private String bookingReference;
 
+    @Column(name = "check_in")
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime checkIn;
 
+    @Column(name = "check_out")
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime checkOut;
 
+    @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime createdAt;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 

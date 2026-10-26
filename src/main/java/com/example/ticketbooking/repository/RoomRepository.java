@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
 
-    @Query(value = "select r from Room r where r.hotel_id = :hotelId order by r.status limit :size")
+    @Query(value = "select r from Room r where r.hotel.id = :hotelId order by r.status limit :size")
     List<Room> findByHotel(Long hotelId, Long size);
 }

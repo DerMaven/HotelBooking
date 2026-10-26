@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "rooms")
+@Table(name = "rooms", indexes = {
+        @Index(name = "idx_room_status", columnList = "status")
+})
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -18,14 +20,18 @@ public class Room {
     @Id
     private Long id;
 
+    @Column(name = "room_number")
     @NotBlank(message = "You must enter room's number")
     private String roomNumber;
 
+    @Column(name = "floor")
     private Long floor;
 
+    @Column(name = "room_type")
     @Enumerated(EnumType.STRING)
     private RoomType roomType;
 
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
 

@@ -45,25 +45,24 @@ public class RedisLockService {
 
 
     public void releaseLock(Long roomId, Long bookingId, LocalDate checkIn, LocalDate checkOut) {
-        List<LocalDate> datesToLock = getDatesBetween(checkIn, checkOut);
+        List<LocalDate> datesToUnlock = getDatesBetween(checkIn, checkOut);
         List<String> acquiredKeys = new ArrayList<>();
 
         try {
-            for (LocalDate date: datesToLock) {
-                String lockKey = LOCK_ROOM + ":" + roomId + ":" + date;
-                boolean locked = redisTemplate.opsForValue().setIfAbsent(lockKey, String.valueOf(bookingId), Duration.ofMinutes(10));
-
+            for (LocalDate date: datesToUnlock) {
+                String unlockKey = LOCK_ROOM + ":" + roomId + ":" + date;
+                boolean locked = redisTemplate.opsForValue().setIfAbsent(unlockKey, String.valueOf(bookingId), Duration.ofMinutes(10));
                 if (!locked) {
                     throw new BookingNotLockedException("Блокирование номера на эти даты не было осуществлено");
                 }
-                acquiredKeys.add(lockKey);
+                acquiredKeys.add(unlockKey);
             }
 
             for (String lockKey: acquiredKeys) {
                 redisTemplate.delete(lockKey);
             }
         } catch (ReleasingLockException e) {
-            throw e;
+            System.out.println("Возникла ошибка с разблокировкой значения, " + e.getMessage());
         }
     }
 

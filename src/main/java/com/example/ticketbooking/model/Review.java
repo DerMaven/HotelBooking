@@ -10,22 +10,30 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", indexes = {
+        @Index(name = "idx_reviews_stars", columnList = "stars"),
+        @Index(name = "idx_reviews_created_at", columnList = "created_at")
+})
 @Getter
 @Setter
 @RequiredArgsConstructor
 public class Review {
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
+    @Column(name = "title")
     private String title;
 
+    @Column(name = "description")
     private String description;
 
+    @Column(name = "created_at")
     @DateTimeFormat
     private LocalDateTime createdAt;
 
+    @Column(name = "stars")
     private Byte stars;
 
     @ManyToOne(fetch = FetchType.LAZY)

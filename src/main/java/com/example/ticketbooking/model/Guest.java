@@ -3,12 +3,16 @@ package com.example.ticketbooking.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "guests")
+@Table(name = "guests", indexes = {
+        @Index(name = "idx_guests_email", columnList = "email"),
+        @Index(name = "idx_guests_first_name_last_name_age", columnList = "first_name, last_name, age")
+})
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -18,18 +22,26 @@ public class Guest {
     @Id
     private Long id;
 
+    @Column(name = "first_name")
     @NotBlank(message = "You must enter first name")
     private String firstName;
 
+    @Column(name = "last_name")
     @NotBlank(message = "You must enter last name")
     private String lastName;
 
-    @NotBlank
+    @Column(name = "age")
+    @PositiveOrZero
+    private Byte age;
+
+    @Column(name = "email")
     @Email(message = "You must enter a proper email")
     private String email;
 
+    @Column(name = "passport_number")
     private String passportNumber;
 
+    @Column(name = "phone_number")
     @NotBlank(message = "Phone number has to be entered")
     private String phoneNumber;
 }
