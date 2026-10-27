@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RatePlanRepository extends JpaRepository<RatePlan, Long> {
 
@@ -12,5 +13,8 @@ public interface RatePlanRepository extends JpaRepository<RatePlan, Long> {
     List<RatePlan> findByHotelName(String hotelName);
 
     @Query("select rp from RatePlan rp join Hotel h on rp.hotel.id = h.id where h.id = :hotelId")
-    List<RatePlan> findByHotelID(Long hotelId);
+    List<RatePlan> findAllByHotelId(Long hotelId);
+
+    @Query("select rp from RatePlan rp join Hotel h on rp.hotel.id = h.id where h.id = :hotelId")
+    Optional<RatePlan> findByHotelId(Long hotelId);
 }

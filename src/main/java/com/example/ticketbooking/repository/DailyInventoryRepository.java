@@ -11,4 +11,6 @@ public interface DailyInventoryRepository extends JpaRepository<DailyInventory, 
     @Query("select di from DailyInventory di where di.hotel.name = :name")
     Optional<DailyInventory> findByHotelName(String name);
 
+    @Query("select di from DailyInventory di where di.hotel.id = :hotelId")
+    Optional<DailyInventory> findByHotelId(Long hotelId);
 }
