@@ -1,4 +1,4 @@
-package com.example.ticketbooking.repository;
+package com.example.ticketbooking.exception;
 
 public class InventoryNotFoundException extends RuntimeException {
     public InventoryNotFoundException(String message) {
