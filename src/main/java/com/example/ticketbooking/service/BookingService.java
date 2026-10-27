@@ -1,5 +1,6 @@
 package com.example.ticketbooking.service;
 
+import com.example.ticketbooking.dto.BookingDto;
 import com.example.ticketbooking.exception.*;
 import com.example.ticketbooking.model.*;
 import com.example.ticketbooking.model.enums.*;
@@ -10,6 +11,7 @@ import jakarta.persistence.Persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,10 +26,11 @@ public class BookingService {
     private final HotelService hotelService;
     private final RoomService roomService;
     private final RedisLockService redisLockService;
+    private final RedisCacheService redisCacheService;
     private final TransactionService transactionService;
     private final InventoryService inventoryService;
 
-    public Booking createBooking(Long hotelId, Long roomId, Long ratePlanId, Long guestId, PaymentMethod paymentMethod, Currency currency, LocalDate checkIn, LocalDate checkOut) {
+    public BookingDto createBooking(Long hotelId, Long roomId, Long ratePlanId, Long guestId, PaymentMethod paymentMethod, LocalDate checkIn, LocalDate checkOut) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("createBooking");
         EntityManager em = emf.createEntityManager();
 
@@ -69,6 +72,12 @@ public class BookingService {
 
             // TODO: загрузка комнаты и инвентаря
             Room room = em.find(Room.class, roomId);
+            if (room.getStatus() == RoomStatus.OCCUPIED ||
+                    room.getStatus() == RoomStatus.MAINTENANCE ||
+                    room.getStatus() == RoomStatus.RESERVED ||
+                    room.getIsAvailable() == false) {
+                throw new RoomNotAvailableException("Комната недоступна");
+            }
             booking.setRoom(room);
 
             em.persist(room);
@@ -96,12 +105,18 @@ public class BookingService {
             if (!transactionService.isHotelAndRatePlanCurrenciesEqual(hotelCurrency, ratePlanCurrency)) {
                 em.getTransaction().rollback();
             }
-            transactionService.setPriceByRatePlan(transaction, ratePlanId);
+
+            Long nights = (long) getNights(checkIn, checkOut);
+            if (ratePlan.getMinNightsStay() > nights || ratePlan.getMaxNightsStay() < nights) {
+                throw new NightsLimitReachedException("Вы превысили границу ночеваний");
+            }
+            transactionService.setPriceByRatePlan(transaction, ratePlanId, nights);
 
             // TODO: подборка комнаты по параметрам
 
             // TODO: статус комнаты должен поменяться на RESERVED
             room.setStatus(RoomStatus.RESERVED);
+            room.setIsAvailable(false);
 
             // TODO: время платежа должно стать processedAt.now(), PAID status, работа шлюза
             transaction.setProcessedAt(LocalDateTime.now());
@@ -125,21 +140,33 @@ public class BookingService {
             // TODO: flush + COMMIT
             em.flush();
             em.getTransaction().commit();
-        } catch (Exception e) {
 
+            BookingDto dto = new BookingDto(
+                    roomId,
+                    room.getRoomType(),
+                    checkIn,
+                    checkOut,
+                    nights,
+                    ratePlan.getPrice().longValue(),
+                    transaction.getAmount(),
+                    ratePlanCurrency,
+                    true,
+                    ratePlan.getId()
+                    );
+            redisCacheService.set("booking", String.valueOf(booking.getId()), Duration.ofMinutes(30));
+
+            return dto;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new BookingCreationException("Возникла ошибка при создании брони");
         } finally {
+            // TODO: после успешного flush + COMMIT кэшировать бронь + unlock
             em.close();
             redisLockService.releaseLock(roomId, Long.valueOf(tempId), checkIn, checkOut);
         }
-        // TODO: после успешного flush + COMMIT кэшировать бронь + unlock
     }
 
-    public List<Booking> getByFullName(String firstName, String lastName) {
-        return bookingRepository.findByFullName(firstName, lastName);
-    }
-
-    public Booking getByCheckInAndFullName(LocalDate checkIn, String firstName, String lastName) {
-        return bookingRepository.findByCheckInDateAndFullName(checkIn, firstName, lastName)
-                .orElseThrow(() -> new BookingNotFoundException("Booking was not found"));
+    private int getNights(LocalDate checkIn, LocalDate checkOut) {
+        return checkIn.datesUntil(checkOut).toList().size();
     }
 }

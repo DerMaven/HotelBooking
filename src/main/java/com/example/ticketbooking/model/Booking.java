@@ -3,11 +3,13 @@ package com.example.ticketbooking.model;
 import com.example.ticketbooking.model.enums.BookingStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -37,6 +39,10 @@ public class Booking {
     @Column(name = "check_out")
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDate checkOut;
+
+    @Column(name = "nights")
+    @PositiveOrZero
+    private BigDecimal nights;
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")

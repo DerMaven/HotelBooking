@@ -3,12 +3,11 @@ package com.example.ticketbooking.service;
 import com.example.ticketbooking.model.RatePlan;
 import com.example.ticketbooking.model.Transaction;
 import com.example.ticketbooking.model.enums.Currency;
-import com.example.ticketbooking.repository.RatePlanNotFoundException;
+import com.example.ticketbooking.exception.RatePlanNotFoundException;
 import com.example.ticketbooking.repository.RatePlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
@@ -25,9 +24,10 @@ public class TransactionService {
         return Objects.equals(hotelCurrency, ratePlanCurrency);
     }
 
-    public void setPriceByRatePlan(Transaction transaction, Long ratePlanId) {
+    public void setPriceByRatePlan(Transaction transaction, Long ratePlanId, Long nights) {
         RatePlan ratePlan = ratePlanRepository.findById(ratePlanId)
                 .orElseThrow(() -> new RatePlanNotFoundException("Тариф не был найден"));
-        transaction.setAmount(ratePlan.getPrice());
+        Long amount = ratePlan.getPrice().longValue() * nights;
+        transaction.setAmount(amount);
     }
 }

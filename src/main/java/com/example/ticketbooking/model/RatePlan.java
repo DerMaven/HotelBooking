@@ -40,11 +40,11 @@ public class RatePlan {
 
     @Column(name = "min_nights_stay")
     @PositiveOrZero
-    private Byte minNightsStay;
+    private Long minNightsStay;
 
     @Column(name = "max_nights_stay")
     @PositiveOrZero
-    private Byte maxNightsStay;
+    private Long maxNightsStay;
 
     @Column(name = "is_active")
     private Boolean isActive;

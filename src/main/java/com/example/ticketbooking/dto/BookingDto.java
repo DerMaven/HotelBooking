@@ -1,14 +1,20 @@
 package com.example.ticketbooking.dto;
 
-import java.time.LocalDateTime;
+import com.example.ticketbooking.model.enums.Currency;
+import com.example.ticketbooking.model.enums.RoomType;
+
+import java.time.LocalDate;
 
 public record BookingDto(
-        Long id,
-        Long hotelId,
         Long roomId,
-        Long guestId,
-        Long bookingId,
-        LocalDateTime checkIn,
-        LocalDateTime checkOut
+        RoomType roomType,
+        LocalDate checkIn,
+        LocalDate checkOut,
+        Long nights,
+        Long pricePerNight,
+        Long totalAmount,
+        Currency currency,
+        Boolean isAvailable,
+        Long ratePlanId
 ) {
 }

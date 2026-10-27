@@ -2,7 +2,7 @@ package com.example.ticketbooking.service;
 
 import com.example.ticketbooking.model.DailyInventory;
 import com.example.ticketbooking.repository.DailyInventoryRepository;
-import com.example.ticketbooking.repository.InventoryNotFoundException;
+import com.example.ticketbooking.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

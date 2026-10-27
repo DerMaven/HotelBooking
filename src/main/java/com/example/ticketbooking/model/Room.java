@@ -4,13 +4,15 @@ import com.example.ticketbooking.model.enums.RoomStatus;
 import com.example.ticketbooking.model.enums.RoomType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jdk.jfr.BooleanFlag;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "rooms", indexes = {
-        @Index(name = "idx_room_status", columnList = "status")
+        @Index(name = "idx_room_status", columnList = "status"),
+        @Index(name = "idx_room_availability", columnList = "is_available")
 })
 @Getter
 @Setter
@@ -34,6 +36,9 @@ public class Room {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
+
+    @Column(name = "is_available")
+    private Boolean isAvailable;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")

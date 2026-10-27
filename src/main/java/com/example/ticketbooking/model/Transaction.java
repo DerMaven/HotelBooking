@@ -29,7 +29,7 @@ public class Transaction {
 
     @Column(name = "amount")
     @PositiveOrZero
-    private BigDecimal amount;
+    private Long amount;
 
     @Column(name = "currency")
     @Enumerated(EnumType.STRING)

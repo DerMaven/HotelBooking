@@ -1,16 +1,13 @@
 package com.example.ticketbooking.service;
 
 import com.example.ticketbooking.exception.HotelNotFoundException;
-import com.example.ticketbooking.model.Hotel;
 import com.example.ticketbooking.model.RatePlan;
 import com.example.ticketbooking.model.enums.Currency;
 import com.example.ticketbooking.repository.HotelRepository;
-import com.example.ticketbooking.repository.RatePlanNotFoundException;
+import com.example.ticketbooking.exception.RatePlanNotFoundException;
 import com.example.ticketbooking.repository.RatePlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
