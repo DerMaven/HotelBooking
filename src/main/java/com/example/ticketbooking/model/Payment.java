@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +21,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class Transaction {
+public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
@@ -37,7 +36,7 @@ public class Transaction {
 
     @Column(name = "payment")
     @Enumerated(EnumType.STRING)
-    private PaymentMethod payment;
+    private PaymentMethod paymentMethod;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
