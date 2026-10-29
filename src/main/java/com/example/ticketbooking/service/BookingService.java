@@ -9,12 +9,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,7 +27,12 @@ public class BookingService {
     private final RoomService roomService;
     private final RedisLockService redisLockService;
     private final RedisCacheService redisCacheService;
-    private final TransactionService transactionService;
+
+    @Qualifier("paymentService")
+    private final MoneyService paymentService;
+
+    @Qualifier("refundService")
+    private final MoneyService refundService;
     private final InventoryService inventoryService;
 
     public BookingDto createBooking(Long hotelId, Long roomId, Long ratePlanId, Long guestId, PaymentMethod paymentMethod, LocalDate checkIn, LocalDate checkOut) {
@@ -55,11 +60,9 @@ public class BookingService {
             booking.setStatus(BookingStatus.CREATED);
             booking.setCreatedAt(LocalDateTime.now());
 
-            // TODO: загрузка пользователя
             Guest guest = em.find(Guest.class, guestId);
             booking.setGuest(guest);
 
-            // TODO: загрузка отеля и тарифа
             Hotel hotel = em.find(Hotel.class, hotelId);
             booking.setHotel(hotel);
 
@@ -70,7 +73,6 @@ public class BookingService {
 
             em.persist(ratePlan);
 
-            // TODO: загрузка комнаты и инвентаря
             Room room = em.find(Room.class, roomId);
             if (room.getStatus() == RoomStatus.OCCUPIED ||
                     room.getStatus() == RoomStatus.MAINTENANCE ||
@@ -85,24 +87,21 @@ public class BookingService {
             DailyInventory inventory = em.find(DailyInventory.class, inventoryService.getInventoryByHotelId(hotelId));
 
             em.persist(inventory);
-            // TODO: создание платежа со статусом PENDING и методом оплаты
-            Transaction transaction = new Transaction();
-            transaction.setStatus(PaymentStatus.PENDING);
-            transaction.setPayment(paymentMethod);
 
-            em.persist(transaction);
+            Payment payment = new Payment();
+            payment.setStatus(PaymentStatus.PENDING);
+            payment.setPaymentMethod(paymentMethod);
 
-            // TODO: прибавить bookedStock
+            em.persist(payment);
+
             if (inventory.getBookingStock() + 1 > inventory.getTotalStock()) {
                 em.getTransaction().rollback();
             }
             inventory.setBookingStock(inventory.getBookingStock() + 1);
 
-            // TODO: к сумме пустого платежа назначить сумму из Rate Plan
-            // TODO: валюты должны совпадать в отеле и тарифе
             Currency hotelCurrency = hotelService.getCurrency(hotelId);
             Currency ratePlanCurrency = Currency.valueOf(hotelService.getRatePlan(ratePlanId).getCurrency());
-            if (!transactionService.isHotelAndRatePlanCurrenciesEqual(hotelCurrency, ratePlanCurrency)) {
+            if (!paymentService.isHotelAndRatePlanCurrenciesEqual(hotelCurrency, ratePlanCurrency)) {
                 em.getTransaction().rollback();
             }
 
@@ -110,23 +109,17 @@ public class BookingService {
             if (ratePlan.getMinNightsStay() > nights || ratePlan.getMaxNightsStay() < nights) {
                 throw new NightsLimitReachedException("Вы превысили границу ночеваний");
             }
-            transactionService.setPriceByRatePlan(transaction, ratePlanId, nights);
+            paymentService.setPriceByRatePlan(payment, ratePlanId, nights);
 
-            // TODO: подборка комнаты по параметрам
-
-            // TODO: статус комнаты должен поменяться на RESERVED
             room.setStatus(RoomStatus.RESERVED);
             room.setIsAvailable(false);
 
-            // TODO: время платежа должно стать processedAt.now(), PAID status, работа шлюза
-            transaction.setProcessedAt(LocalDateTime.now());
-            transactionService.paymentLayer(transaction);
-            transaction.setStatus(PaymentStatus.PAID);
+            payment.setProcessedAt(LocalDateTime.now());
+            paymentService.paymentLayer(payment);
+            payment.setStatus(PaymentStatus.PAID);
 
-            // TODO: статус брони должен статус CONFIRMED
             booking.setStatus(BookingStatus.CONFIRMED);
 
-            // TODO: поставить Booking Reference и даты
             int hotelHash = Integer.parseInt(String.format("%3.3s", hotelId.hashCode()));
             int planHash = Integer.parseInt(String.format("%3.3s", ratePlanId.hashCode()));
             String bookingReference = "H-" + hotelHash + "P-" + planHash + "-" + UUID.randomUUID();
@@ -137,7 +130,6 @@ public class BookingService {
 
             em.persist(booking);
 
-            // TODO: flush + COMMIT
             em.flush();
             em.getTransaction().commit();
 
@@ -148,7 +140,7 @@ public class BookingService {
                     checkOut,
                     nights,
                     ratePlan.getPrice().longValue(),
-                    transaction.getAmount(),
+                    payment.getAmount(),
                     ratePlanCurrency,
                     true,
                     ratePlan.getId()
@@ -160,11 +152,92 @@ public class BookingService {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             throw new BookingCreationException("Возникла ошибка при создании брони");
         } finally {
-            // TODO: после успешного flush + COMMIT кэшировать бронь + unlock
             em.close();
             redisLockService.releaseLock(roomId, Long.valueOf(tempId), checkIn, checkOut);
         }
     }
+
+    public BookingDto cancelBooking(Long bookingId, Long guestId) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("createBooking");
+        EntityManager em = emf.createEntityManager();
+
+
+        try {
+            em.getTransaction().begin();
+
+            // TODO: load booking & guest FOR UPDATE
+            Booking booking = em.find(Booking.class, bookingId);
+            Long nights = booking.getNights().longValue();
+            Currency bookingCurrency = booking.getHotel().getCurrency();
+            Guest guest = em.find(Guest.class, guestId);
+
+            // TODO: check if booking was CONFIRMED & belongs to guest
+            if (!(booking.getStatus() == BookingStatus.CONFIRMED)) {
+                throw new BookingStatusException("Бронь не была подтверждена, чтобы ее отменять");
+            }
+            if (!(Objects.equals(guest.getId(), booking.getGuest().getId()))) {
+                throw new BookingNotBelongsToGuestException("Бронь не принадлежит гостю. чтобы он мог ее отменить");
+            }
+
+            // TODO: bookedStock--
+            DailyInventory inventory = inventoryService.getInventoryByHotelId(booking.getHotel().getId());
+            if ((inventory.getBookingStock() + 1 < 0)) {
+                throw new StockDecrementException("Декрементирование инвентаря невозможно");
+            }
+
+            inventory.setBookingStock(inventory.getBookingStock() - 1);
+
+            em.persist(inventory);
+
+            Payment paymentEM = refundService.getByBookingId(booking.getId());
+
+            Payment refundPayment = new Payment();
+            refundPayment.setAmount(paymentEM.getAmount());
+            refundPayment.setCurrency(paymentEM.getCurrency());
+            refundPayment.setPaymentMethod(paymentEM.getPaymentMethod());
+            refundPayment.setStatus(PaymentStatus.REFUNDING);
+
+            // TODO: Trasaction.processedAt()
+            refundPayment.setProcessedAt(LocalDateTime.now());
+            em.persist(refundPayment);
+
+            // TODO: Insert new Transaction with status REFUND & bookingId
+            refundService.paymentLayer(refundPayment);
+            refundPayment.setStatus(PaymentStatus.REFUNDED);
+            refundPayment.setBooking(booking);
+            em.merge(refundPayment);
+
+            // TODO: Booking status is CANCELLED
+            booking.setStatus(BookingStatus.CANCELLED);
+            em.merge(booking);
+
+            em.flush();
+            em.getTransaction().commit();
+
+            BookingDto dto = new BookingDto(
+                    booking.getRoom().getId(),
+                    booking.getRoom().getRoomType(),
+                    booking.getCheckIn(),
+                    booking.getCheckOut(),
+                    nights,
+                    booking.getRatePlan().getPrice().longValue(),
+                    paymentEM.getAmount(),
+                    bookingCurrency,
+                    false,
+                    booking.getRatePlan().getId()
+            );
+
+            return dto;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new BookingCancellationException("Возникла ошибка при отмене брони");
+        } finally {
+            // TODO: после успешного flush + COMMIT кэшировать отмену брони
+            em.close();
+            redisCacheService.set("booking", String.valueOf(bookingId), Duration.ofMinutes(10));
+        }
+    }
+
 
     private int getNights(LocalDate checkIn, LocalDate checkOut) {
         return checkIn.datesUntil(checkOut).toList().size();
