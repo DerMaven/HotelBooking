@@ -28,7 +28,7 @@ public class GuestService {
                     );
         }
         Guest guest = guestRepository.findById(guestId)
-                .orElseThrow(() -> new GuestNotFoundException("Гость не был найден"));
+                .orElseThrow(() -> new GuestNotFoundException("Гость не был найден в базе данных"));
         redisCacheService.set(String.valueOf(guest.getId()), guest, Duration.ofMinutes(10));
         return new GuestDto(
                 guest.getFirstName() + " " + guest.getLastName(),
