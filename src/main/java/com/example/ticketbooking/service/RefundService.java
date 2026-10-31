@@ -1,5 +1,6 @@
 package com.example.ticketbooking.service;
 
+import com.example.ticketbooking.dto.PaymentDto;
 import com.example.ticketbooking.exception.PaymentNotFoundException;
 import com.example.ticketbooking.exception.RatePlanNotFoundException;
 import com.example.ticketbooking.exception.RefundNotFoundException;
@@ -10,16 +11,20 @@ import com.example.ticketbooking.repository.PaymentRepository;
 import com.example.ticketbooking.repository.RatePlanRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service("refundService")
 public class RefundService extends MoneyService {
     private final RatePlanRepository ratePlanRepository;
+    private final RedisCacheService redisCacheService;
     private final PaymentRepository paymentRepository;
 
 
-    public RefundService(RatePlanRepository ratePlanRepository, PaymentRepository paymentRepository) {
+    public RefundService(RatePlanRepository ratePlanRepository, RedisCacheService redisCacheService, PaymentRepository paymentRepository) {
         super(ratePlanRepository, paymentRepository);
+        this.redisCacheService = redisCacheService;
         this.ratePlanRepository = ratePlanRepository;
         this.paymentRepository = paymentRepository;
     }
@@ -36,9 +41,27 @@ public class RefundService extends MoneyService {
     }
 
     @Override
-    public Payment getByBookingId(Long bookingId) {
-        return paymentRepository.findByBookingId(bookingId)
-                .orElseThrow(() -> new RefundNotFoundException("Возврат не был найден"));
+    public PaymentDto getByBookingId(Long bookingId) {
+        Optional<Payment> paymentCache = redisCacheService.get(String.valueOf(bookingId), Payment.class);
+        if (paymentCache.isPresent()) {
+            Payment payment = paymentCache.orElseThrow(() -> new PaymentNotFoundException("Возврат не была найден в кэше"));
+            redisCacheService.set(String.valueOf(bookingId), payment, Duration.ofMinutes(5));
+            return new PaymentDto(
+                    payment.getId(),
+                    payment.getAmount(),
+                    payment.getCurrency(),
+                    payment.getProcessedAt()
+            );
+        }
+        Payment payment = paymentRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new PaymentNotFoundException("Возврат не был найден в базе данных"));
+        redisCacheService.set(String.valueOf(payment.getBooking().getId()), payment, Duration.ofMinutes(15));
+        return new PaymentDto(
+                payment.getId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getProcessedAt()
+        );
     }
 
     @Override

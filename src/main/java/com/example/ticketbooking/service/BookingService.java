@@ -2,6 +2,7 @@ package com.example.ticketbooking.service;
 
 import com.example.ticketbooking.dto.BookingDto;
 import com.example.ticketbooking.dto.GuestDto;
+import com.example.ticketbooking.dto.PaymentDto;
 import com.example.ticketbooking.exception.*;
 import com.example.ticketbooking.model.*;
 import com.example.ticketbooking.model.enums.*;
@@ -188,12 +189,12 @@ public class BookingService {
 
             em.persist(inventory);
 
-            Payment paymentEM = refundService.getByBookingId(booking.getId());
+            PaymentDto payment = refundService.getByBookingId(booking.getId());
 
             Payment refundPayment = new Payment();
-            refundPayment.setAmount(paymentEM.getAmount());
-            refundPayment.setCurrency(paymentEM.getCurrency());
-            refundPayment.setPaymentMethod(paymentEM.getPaymentMethod());
+            refundPayment.setAmount(payment.amount());
+            refundPayment.setCurrency(payment.currency());
+            refundPayment.setPaymentMethod(payment.paymentMethod());
             refundPayment.setStatus(PaymentStatus.REFUNDING);
 
             refundPayment.setProcessedAt(LocalDateTime.now());
@@ -218,8 +219,8 @@ public class BookingService {
                     booking.getCheckOut(),
                     nights,
                     booking.getRatePlan().getPrice().longValue(),
-                    paymentEM.getAmount(),
-                    bookingCurrency,
+                    payment.amount(),
+                    payment.currency(),
                     false,
                     booking.getRatePlan().getId()
             );
@@ -239,7 +240,7 @@ public class BookingService {
         if (bookingCache.isPresent()) {
             Booking booking = bookingCache.orElseThrow(() -> new BookingNotFoundException("Бронь не была найдена в кэше"));
             redisCacheService.set(String.valueOf(bookingId), booking, Duration.ofMinutes(5));
-            Payment payment = paymentService.getByBookingId(bookingId);
+            PaymentDto payment = paymentService.getByBookingId(bookingId);
             return new BookingDto(
                     booking.getId(),
                     booking.getRoom().getId(),
@@ -248,8 +249,8 @@ public class BookingService {
                     booking.getCheckOut(),
                     booking.getNights().longValue(),
                     booking.getRatePlan().getPrice().longValue(),
-                    payment.getAmount(),
-                    payment.getCurrency(),
+                    payment.amount(),
+                    payment.currency(),
                     true,
                     booking.getRatePlan().getId()
             );
@@ -257,7 +258,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new GuestNotFoundException("Бронь не была найдена в базе данных"));
         redisCacheService.set(String.valueOf(booking.getId()), booking, Duration.ofMinutes(20));
-        Payment payment = paymentService.getByBookingId(bookingId);
+        PaymentDto payment = paymentService.getByBookingId(bookingId);
         return new BookingDto(
                 booking.getId(),
                 booking.getRoom().getId(),
@@ -266,13 +267,12 @@ public class BookingService {
                 booking.getCheckOut(),
                 booking.getNights().longValue(),
                 booking.getRatePlan().getPrice().longValue(),
-                payment.getAmount(),
-                payment.getCurrency(),
+                payment.amount(),
+                payment.currency(),
                 true,
                 booking.getRatePlan().getId()
         );
     }
-
 
     private int getNights(LocalDate checkIn, LocalDate checkOut) {
         return checkIn.datesUntil(checkOut).toList().size();

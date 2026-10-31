@@ -1,5 +1,6 @@
 package com.example.ticketbooking.service;
 
+import com.example.ticketbooking.dto.PaymentDto;
 import com.example.ticketbooking.model.Payment;
 import com.example.ticketbooking.model.enums.Currency;
 import com.example.ticketbooking.repository.PaymentRepository;
@@ -20,7 +21,7 @@ public abstract class MoneyService {
 
     public abstract boolean isHotelAndRatePlanCurrenciesEqual(Currency hotelCurrency, Currency ratePlanCurrency);
 
-    public abstract Payment getByBookingId(Long bookingId);
+    public abstract PaymentDto getByBookingId(Long bookingId);
 
     public abstract void setPriceByRatePlan(Payment payment, Long ratePlanId, Long nights);
 }
