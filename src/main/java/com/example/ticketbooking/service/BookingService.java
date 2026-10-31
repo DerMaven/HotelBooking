@@ -1,6 +1,7 @@
 package com.example.ticketbooking.service;
 
 import com.example.ticketbooking.dto.BookingDto;
+import com.example.ticketbooking.dto.GuestDto;
 import com.example.ticketbooking.exception.*;
 import com.example.ticketbooking.model.*;
 import com.example.ticketbooking.model.enums.*;
@@ -134,6 +135,7 @@ public class BookingService {
             em.getTransaction().commit();
 
             BookingDto dto = new BookingDto(
+                    booking.getId(),
                     roomId,
                     room.getRoomType(),
                     checkIn,
@@ -165,13 +167,11 @@ public class BookingService {
         try {
             em.getTransaction().begin();
 
-            // TODO: load booking & guest FOR UPDATE
             Booking booking = em.find(Booking.class, bookingId);
             Long nights = booking.getNights().longValue();
             Currency bookingCurrency = booking.getHotel().getCurrency();
             Guest guest = em.find(Guest.class, guestId);
 
-            // TODO: check if booking was CONFIRMED & belongs to guest
             if (!(booking.getStatus() == BookingStatus.CONFIRMED)) {
                 throw new BookingStatusException("Бронь не была подтверждена, чтобы ее отменять");
             }
@@ -179,7 +179,6 @@ public class BookingService {
                 throw new BookingNotBelongsToGuestException("Бронь не принадлежит гостю. чтобы он мог ее отменить");
             }
 
-            // TODO: bookedStock--
             DailyInventory inventory = inventoryService.getInventoryByHotelId(booking.getHotel().getId());
             if ((inventory.getBookingStock() + 1 < 0)) {
                 throw new StockDecrementException("Декрементирование инвентаря невозможно");
@@ -197,17 +196,14 @@ public class BookingService {
             refundPayment.setPaymentMethod(paymentEM.getPaymentMethod());
             refundPayment.setStatus(PaymentStatus.REFUNDING);
 
-            // TODO: Trasaction.processedAt()
             refundPayment.setProcessedAt(LocalDateTime.now());
             em.persist(refundPayment);
 
-            // TODO: Insert new Transaction with status REFUND & bookingId
             refundService.paymentLayer(refundPayment);
             refundPayment.setStatus(PaymentStatus.REFUNDED);
             refundPayment.setBooking(booking);
             em.merge(refundPayment);
 
-            // TODO: Booking status is CANCELLED
             booking.setStatus(BookingStatus.CANCELLED);
             em.merge(booking);
 
@@ -215,6 +211,7 @@ public class BookingService {
             em.getTransaction().commit();
 
             BookingDto dto = new BookingDto(
+                    booking.getId(),
                     booking.getRoom().getId(),
                     booking.getRoom().getRoomType(),
                     booking.getCheckIn(),
@@ -232,10 +229,48 @@ public class BookingService {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             throw new BookingCancellationException("Возникла ошибка при отмене брони");
         } finally {
-            // TODO: после успешного flush + COMMIT кэшировать отмену брони
             em.close();
             redisCacheService.set("booking", String.valueOf(bookingId), Duration.ofMinutes(10));
         }
+    }
+
+    public BookingDto getById(Long bookingId) {
+        Optional<Booking> bookingCache = redisCacheService.get(String.valueOf(bookingId), Booking.class);
+        if (bookingCache.isPresent()) {
+            Booking booking = bookingCache.orElseThrow(() -> new BookingNotFoundException("Бронь не была найдена в кэше"));
+            redisCacheService.set(String.valueOf(bookingId), booking, Duration.ofMinutes(5));
+            Payment payment = paymentService.getByBookingId(bookingId);
+            return new BookingDto(
+                    booking.getId(),
+                    booking.getRoom().getId(),
+                    booking.getRoom().getRoomType(),
+                    booking.getCheckIn(),
+                    booking.getCheckOut(),
+                    booking.getNights().longValue(),
+                    booking.getRatePlan().getPrice().longValue(),
+                    payment.getAmount(),
+                    payment.getCurrency(),
+                    true,
+                    booking.getRatePlan().getId()
+            );
+        }
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new GuestNotFoundException("Бронь не была найдена в базе данных"));
+        redisCacheService.set(String.valueOf(booking.getId()), booking, Duration.ofMinutes(20));
+        Payment payment = paymentService.getByBookingId(bookingId);
+        return new BookingDto(
+                booking.getId(),
+                booking.getRoom().getId(),
+                booking.getRoom().getRoomType(),
+                booking.getCheckIn(),
+                booking.getCheckOut(),
+                booking.getNights().longValue(),
+                booking.getRatePlan().getPrice().longValue(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                true,
+                booking.getRatePlan().getId()
+        );
     }
 
 

@@ -6,6 +6,7 @@ import com.example.ticketbooking.model.enums.RoomType;
 import java.time.LocalDate;
 
 public record BookingDto(
+        Long bookingId,
         Long roomId,
         RoomType roomType,
         LocalDate checkIn,
