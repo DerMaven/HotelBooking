@@ -50,7 +50,8 @@ public class RefundService extends MoneyService {
                     payment.getId(),
                     payment.getAmount(),
                     payment.getCurrency(),
-                    payment.getProcessedAt()
+                    payment.getProcessedAt(),
+                    payment.getPaymentMethod()
             );
         }
         Payment payment = paymentRepository.findByBookingId(bookingId)
@@ -60,7 +61,8 @@ public class RefundService extends MoneyService {
                 payment.getId(),
                 payment.getAmount(),
                 payment.getCurrency(),
-                payment.getProcessedAt()
+                payment.getProcessedAt(),
+                payment.getPaymentMethod()
         );
     }
 

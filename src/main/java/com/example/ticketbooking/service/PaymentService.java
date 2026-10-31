@@ -1,11 +1,8 @@
 package com.example.ticketbooking.service;
 
-import com.example.ticketbooking.dto.GuestDto;
 import com.example.ticketbooking.dto.PaymentDto;
-import com.example.ticketbooking.exception.GuestNotFoundException;
 import com.example.ticketbooking.exception.PaymentNotFoundException;
 import com.example.ticketbooking.exception.RatePlanNotFoundException;
-import com.example.ticketbooking.model.Guest;
 import com.example.ticketbooking.model.Payment;
 import com.example.ticketbooking.model.RatePlan;
 import com.example.ticketbooking.model.enums.Currency;
