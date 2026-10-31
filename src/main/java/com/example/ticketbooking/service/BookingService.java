@@ -235,6 +235,84 @@ public class BookingService {
         }
     }
 
+    public BookingDto getByReference(String reference) {
+        Optional<Booking> bookingCache = redisCacheService.get(String.valueOf(reference), Booking.class);
+        if (bookingCache.isPresent()) {
+            Booking booking = bookingCache.orElseThrow(() -> new BookingNotFoundException("Бронь не была найдена в кэше"));
+            redisCacheService.set(String.valueOf(reference), booking, Duration.ofMinutes(5));
+            PaymentDto payment = paymentService.getByBookingId(booking.getId());
+            return new BookingDto(
+                    booking.getId(),
+                    booking.getRoom().getId(),
+                    booking.getRoom().getRoomType(),
+                    booking.getCheckIn(),
+                    booking.getCheckOut(),
+                    booking.getNights().longValue(),
+                    booking.getRatePlan().getPrice().longValue(),
+                    payment.amount(),
+                    payment.currency(),
+                    true,
+                    booking.getRatePlan().getId()
+            );
+        }
+        Booking booking = bookingRepository.findByReference(reference)
+                .orElseThrow(() -> new GuestNotFoundException("Бронь не была найдена в базе данных"));
+        redisCacheService.set(String.valueOf(booking.getId()), booking, Duration.ofMinutes(20));
+        PaymentDto payment = paymentService.getByBookingId(booking.getId());
+        return new BookingDto(
+                booking.getId(),
+                booking.getRoom().getId(),
+                booking.getRoom().getRoomType(),
+                booking.getCheckIn(),
+                booking.getCheckOut(),
+                booking.getNights().longValue(),
+                booking.getRatePlan().getPrice().longValue(),
+                payment.amount(),
+                payment.currency(),
+                true,
+                booking.getRatePlan().getId()
+        );
+    }
+
+    public BookingDto getByGuestId(Long guestId) {
+        Optional<Booking> bookingCache = redisCacheService.get(String.valueOf(guestId), Booking.class);
+        if (bookingCache.isPresent()) {
+            Booking booking = bookingCache.orElseThrow(() -> new BookingNotFoundException("Бронь не была найдена в кэше"));
+            redisCacheService.set(String.valueOf(guestId), booking, Duration.ofMinutes(5));
+            PaymentDto payment = paymentService.getByBookingId(guestId);
+            return new BookingDto(
+                    booking.getId(),
+                    booking.getRoom().getId(),
+                    booking.getRoom().getRoomType(),
+                    booking.getCheckIn(),
+                    booking.getCheckOut(),
+                    booking.getNights().longValue(),
+                    booking.getRatePlan().getPrice().longValue(),
+                    payment.amount(),
+                    payment.currency(),
+                    true,
+                    booking.getRatePlan().getId()
+            );
+        }
+        Booking booking = bookingRepository.findById(guestId)
+                .orElseThrow(() -> new GuestNotFoundException("Бронь не была найдена в базе данных"));
+        redisCacheService.set(String.valueOf(booking.getId()), booking, Duration.ofMinutes(20));
+        PaymentDto payment = paymentService.getByBookingId(booking.getId());
+        return new BookingDto(
+                booking.getId(),
+                booking.getRoom().getId(),
+                booking.getRoom().getRoomType(),
+                booking.getCheckIn(),
+                booking.getCheckOut(),
+                booking.getNights().longValue(),
+                booking.getRatePlan().getPrice().longValue(),
+                payment.amount(),
+                payment.currency(),
+                true,
+                booking.getRatePlan().getId()
+        );
+    }
+
     public BookingDto getById(Long bookingId) {
         Optional<Booking> bookingCache = redisCacheService.get(String.valueOf(bookingId), Booking.class);
         if (bookingCache.isPresent()) {
